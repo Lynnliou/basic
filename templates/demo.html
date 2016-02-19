@@ -1,0 +1,101 @@
+{% load staticfiles %}
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<script src="{% static 'js/jquery.min.js' %}"></script>
+<link type="text/css" rel="stylesheet" href="{%  static 'styles.css'%}">
+<title>我的第一个django网站</title>
+<link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}">
+<script src="{% static 'js/bootstrap.min.js' %}"></script>
+<!-- Custom CSS -->
+<link rel="stylesheet" href="{%  static 'styles.css'%}">
+<link href="{% static 'css/jquerysctipttop.css' %}" rel="stylesheet" type="text/css">
+</head>
+<body>
+<div class="container" id="main">
+<h1>事件列表</h1>
+<form role="form" id="main_input_box" action="/add/" method="post">
+    {% csrf_token %}
+    <label>
+        {{ event_form.event_date }}
+        <input type="text" class="form-control" id="custom_textbox" name="event_date" placeholder="请输入需要办的事情">
+        <input type="submit" value="添加" class="btn btn-primary add_button">
+    </label>
+</form>
+<ol class="list-group list_of_items">
+    {% for eventlist in event_list %}
+  <li id="{{ eventlist.id }}" class="list-group-item {% if eventlist.event_state  %}completed_item{% endif %}">
+	<div class="text_holder">
+        <blockquote>
+            <p>{{ eventlist.event_context }}</p>
+            <small><span class="text-muted">{{ eventlist.event_time|date:"Y-m-d H:i:s" }}创建&nbsp;&nbsp;{% if eventlist.update_time != Null %}{{ eventlist.update_time|date:"Y-m-d H:i:s" }}更新{% endif %}</span></small></blockquote>
+
+		<div class="btn-group pull-right ">
+
+			<button class="delete btn btn-warning" value="{{ eventlist.id }}"  onclick="del_event(value)" >删除</button>
+			<button class="edit btn btn-success"  onclick="edit_event('{{ eventlist.id }}')" name="edit">编辑</button>
+
+		</div>
+    </div>
+
+      <div class="checkbox">
+		<label>
+          <input type="checkbox" class="pull-right" onclick="check('{{ eventlist.id }}')" {% if eventlist.event_state  %}checked{% endif %}>
+        </label>
+	  </div>
+</li>
+    {% endfor %}
+</ol>
+<ul class="pagination">
+    {% if event_list.has_previous %}
+        <a href="#"></a>
+       <li class="pull-left"> <a href="?page={{event_list.previous_page_number }}">&laquo;</a>&nbsp;</li>
+    {% endif %}
+
+    {% if event_list.has_next %}
+       <li class="pull-right"><a href="?page={{ event_list.next_page_number }}">&raquo;</a></li>
+    {% endif %}
+</ul>
+</div>
+<script type="text/javascript">
+   function del_event(element)
+			{
+				if(confirm("确认删除"))
+				{
+					$.ajax(
+					{
+					    url: '/del/'+element+'/',
+
+			            error: function()
+					    {
+					    },
+					    dataType: 'json',
+					    success: function(data)
+					    {
+                            if (data){
+                                window.location.reload()
+                            }
+					    },
+					    type: 'POST'
+				    });
+				}
+			};
+function check(item_id)
+    {
+        location.href = "/check/?event_id="+item_id
+    }
+function edit_event(event_id)
+			{
+                $("#"+event_id).append('<form action="/edit/" class="edit_input_box">'+
+                 '<input type="hidden" size="50" name="event_id" class="itembox" value="'+event_id+'">'+
+                '<input type="text" size="50" name="event" values="{{eventlist.event_context}}" class="itembox">&nbsp;'+
+                '<input type="submit" value="确定" class="edit btn btn-success">'+
+            '</form>');
+
+			};
+
+</script>
+</body>
+</html>
